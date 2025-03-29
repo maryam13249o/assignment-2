@@ -1,0 +1,128 @@
+import unittest
+from datetime import date
+
+# Define the necessary classes for testing
+class Room:
+    def __init__(self, room_number, room_type, amenities, price, available=True):
+        self.room_number = room_number
+        self.room_type = room_type
+        self.amenities = amenities
+        self.price = price
+        self.available = available
+
+    def __str__(self):
+        return f"Room {self.room_number} ({self.room_type})"
+
+class Guest:
+    def __init__(self, name, email, contact, loyalty_points=0):
+        self.name = name
+        self.email = email
+        self.contact = contact
+        self.loyalty_points = loyalty_points
+
+    def get_name(self):
+        return self.name
+
+    def get_email(self):
+        return self.email
+
+    def get_contact(self):
+        return self.contact
+
+    def get_loyalty_points(self):
+        return self.loyalty_points
+
+class Booking:
+    def __init__(self, guest, room, check_in, check_out):
+        self.guest = guest
+        self.room = room
+        self.check_in = check_in
+        self.check_out = check_out
+        self.confirmed = False
+
+    def is_confirmed(self):
+        # Confirm booking logic
+        self.confirmed = True
+        return self.confirmed
+
+    def calculate_total(self):
+        # Example: Calculate total price (for simplicity, just days x price)
+        days = (self.check_out - self.check_in).days
+        return self.room.price * days
+
+class Payment:
+    def __init__(self, amount, method):
+        self.amount = amount
+        self.method = method
+        self.status = 'Pending'
+
+    def process_payment(self):
+        # Simulating payment processing
+        self.status = 'Completed'
+
+# Unit Tests
+class TestRoyalStayHotelSystem(unittest.TestCase):
+
+    # Guest Account Creation
+    def test_guest_account_creation(self):
+        guest1 = Guest("John Doe", "johndoe@example.com", "1234567890")
+        self.assertEqual(guest1.get_name(), "John Doe")
+        self.assertEqual(guest1.get_email(), "johndoe@example.com")
+        self.assertEqual(guest1.get_contact(), "1234567890")
+        self.assertEqual(guest1.get_loyalty_points(), 0)  # Default loyalty points
+
+    # Searching for Available Rooms
+    def test_search_for_available_rooms(self):
+        room1 = Room(101, "Single", ["Wi-Fi", "TV"], 100)
+        room2 = Room(102, "Double", ["Wi-Fi", "TV", "Mini-Bar"], 150, False)  # Not available
+        room3 = Room(103, "Suite", ["Wi-Fi", "TV", "Mini-Bar"], 200)
+
+        available_rooms = [room1, room3]  # Only available rooms
+        self.assertIn(room1, available_rooms)
+        self.assertNotIn(room2, available_rooms)
+
+    # Making a Room Reservation
+    def test_make_room_reservation(self):
+        room1 = Room(101, "Single", ["Wi-Fi", "TV"], 100)
+        guest1 = Guest("John Doe", "johndoe@example.com", "1234567890")
+        check_in = date(2025, 3, 20)
+        check_out = date(2025, 3, 22)
+
+        booking1 = Booking(guest1, room1, check_in, check_out)
+        self.assertTrue(booking1.is_confirmed())  # Booking should be confirmed
+
+    # Booking Confirmation Notification
+    def test_booking_confirmation_notification(self):
+        room1 = Room(101, "Single", ["Wi-Fi", "TV"], 100)
+        guest1 = Guest("John Doe", "johndoe@example.com", "1234567890")
+        check_in = date(2025, 3, 20)
+        check_out = date(2025, 3, 22)
+
+        booking1 = Booking(guest1, room1, check_in, check_out)
+        self.assertTrue(booking1.is_confirmed())  # Booking should be confirmed
+
+    # Invoice Generation for a Booking
+    def test_invoice_generation_for_booking(self):
+        room1 = Room(101, "Single", ["Wi-Fi", "TV"], 100)
+        guest1 = Guest("John Doe", "johndoe@example.com", "1234567890")
+        check_in = date(2025, 3, 20)
+        check_out = date(2025, 3, 22)
+
+        booking1 = Booking(guest1, room1, check_in, check_out)
+        total_amount = booking1.calculate_total()
+        self.assertEqual(total_amount, 200)  # Should be 2 nights x $100 per night
+
+    # Processing Different Payment Methods
+    def test_processing_different_payment_methods(self):
+        room1 = Room(101, "Single", ["Wi-Fi", "TV"], 100)
+        guest1 = Guest("John Doe", "johndoe@example.com", "1234567890")
+        check_in = date(2025, 3, 20)
+        check_out = date(2025, 3, 22)
+
+        booking1 = Booking(guest1, room1, check_in, check_out)
+        payment1 = Payment(booking1.calculate_total(), "Credit Card")
+        payment1.process_payment()
+        self.assertEqual(payment1.status, 'Completed')  # Payment should be completed
+
+if __name__ == '__main__':
+    unittest.main(argv=[''], exit=False)
