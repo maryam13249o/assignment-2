@@ -1,0 +1,204 @@
+# royal_stay_hotel_system.py
+
+from datetime import date
+
+class Room:
+    """
+    Class to represent a hotel room.
+
+    Attributes:
+        number (int): The room number.
+        room_type (str): The type of room (e.g., single, double, suite).
+        amenities (list): List of room amenities (e.g., Wi-Fi, TV, Mini-Bar).
+        price (float): The price per night for the room.
+        available (bool): The availability status of the room.
+    """
+
+    def __init__(self, number, room_type, amenities, price, available=True):
+        self.__number = number
+        self.__room_type = room_type
+        self.__amenities = amenities
+        self.__price = price
+        self.__available = available
+
+    def is_available(self):
+        """Check if the room is available."""
+        return self.__available
+
+    def book_room(self):
+        """Book the room if available."""
+        if self.__available:
+            self.__available = False
+            return True
+        return False
+
+    def cancel_booking(self):
+        """Cancel the room booking and make it available."""
+        self.__available = True
+
+    def get_price(self):
+        """Return the price of the room."""
+        return self.__price
+
+    def __str__(self):
+        """String representation of the room."""
+        return f"Room {self.__number} ({self.__room_type}) - {'Available' if self.__available else 'Booked'}"
+
+
+class Guest:
+    """
+    Class to represent a guest at the hotel.
+
+    Attributes:
+        name (str): The name of the guest.
+        email (str): The email of the guest.
+        contact (str): The contact number of the guest.
+        loyalty_points (int): The number of loyalty points the guest has earned.
+    """
+
+    def __init__(self, name, email, contact, loyalty_points=0):
+        self.__name = name
+        self.__email = email
+        self.__contact = contact
+        self.__loyalty_points = loyalty_points
+        self.__reservations = []
+
+    def add_loyalty_points(self, points):
+        """Add loyalty points to the guest's account."""
+        self.__loyalty_points += points
+
+    def add_reservation(self, booking):
+        """Add a booking to the guest's reservation list."""
+        self.__reservations.append(booking)
+
+    def view_reservations(self):
+        """Return a list of the guest's reservations."""
+        return self.__reservations
+
+    def __str__(self):
+        """String representation of the guest."""
+        return f"Guest: {self.__name}, Loyalty Points: {self.__loyalty_points}"
+
+
+class Booking:
+    """
+    Class to represent a booking made by a guest.
+
+    Attributes:
+        guest (Guest): The guest making the booking.
+        room (Room): The room booked by the guest.
+        check_in (date): The check-in date for the booking.
+        check_out (date): The check-out date for the booking.
+        confirmed (bool): The confirmation status of the booking.
+    """
+
+    def __init__(self, guest, room, check_in, check_out):
+        self.__guest = guest
+        self.__room = room
+        self.__check_in = check_in
+        self.__check_out = check_out
+        self.__confirmed = False
+
+        if room.is_available():
+            self.__confirmed = room.book_room()
+            guest.add_reservation(self)
+
+    def is_confirmed(self):
+        """Return the confirmation status of the booking."""
+        return self.__confirmed
+
+    def cancel(self):
+        """Cancel the booking and make the room available again."""
+        if self.__confirmed:
+            self.__room.cancel_booking()
+            self.__confirmed = False
+            return True
+        return False
+
+    def calculate_total(self):
+        """Calculate the total cost of the booking."""
+        days = (self.__check_out - self.__check_in).days
+        return days * self.__room.get_price() if self.__room else 0
+
+    def __str__(self):
+        """String representation of the booking."""
+        return f"Booking: {self.__guest} -> {self.__room}, Confirmed: {self.__confirmed}"
+
+
+class Payment:
+    """
+    Class to represent a payment made for a booking.
+
+    Attributes:
+        amount (float): The amount to be paid.
+        method (str): The payment method used (e.g., Credit Card, Mobile Wallet).
+        status (str): The payment status (e.g., 'Pending', 'Completed').
+    """
+
+    def __init__(self, amount, method, status='Pending'):
+        self.__amount = amount
+        self.__method = method
+        self.__status = status
+
+    def process_payment(self):
+        """Process the payment and update status."""
+        self.__status = 'Completed'
+
+    def __str__(self):
+        """String representation of the payment."""
+        return f"Payment of {self.__amount} via {self.__method} - Status: {self.__status}"
+
+
+class LoyaltyProgram:
+    """
+    Class to handle the loyalty program for guests.
+
+    Attributes:
+        loyalty_points (int): The loyalty points required for a reward.
+        rewards (dict): Dictionary of rewards available for redemption.
+    """
+
+    def __init__(self):
+        self.__loyalty_points = 100  # Example loyalty points threshold for rewards
+        self.__rewards = {
+            200: "Free Night Stay",
+            100: "20% Discount",
+        }
+
+    def check_rewards(self, points):
+        """Check available rewards based on loyalty points."""
+        eligible_rewards = {points: reward for points, reward in self.__rewards.items() if points <= self.__loyalty_points}
+        return eligible_rewards
+
+    def redeem_rewards(self, points):
+        """Redeem rewards based on points."""
+        if points in self.__rewards:
+            self.__loyalty_points -= points
+            return f"Reward redeemed: {self.__rewards[points]}"
+        return "Not enough points for this reward."
+
+    def __str__(self):
+        """String representation of the loyalty program."""
+        return f"Loyalty Program: {self.__loyalty_points} points required for rewards"
+
+
+# Example Usage:
+if __name__ == "__main__":
+    room1 = Room(101, "Single", ["Wi-Fi", "TV"], 100)
+    guest1 = Guest("John Doe", "johndoe@example.com", "1234567890")
+    
+    check_in = date(2025, 3, 20)
+    check_out = date(2025, 3, 22)
+
+    booking1 = Booking(guest1, room1, check_in, check_out)
+    
+    print(booking1)
+    print(room1)
+    
+    payment1 = Payment(booking1.calculate_total(), "Credit Card")
+    payment1.process_payment()
+    print(payment1)
+
+    loyalty = LoyaltyProgram()
+    print(loyalty.check_rewards(100))
+    print(loyalty.redeem_rewards(100))
